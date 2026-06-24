@@ -1,7 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { findChordVariants } from "@/lib/ukuleleChords";
+
+const VARIANT_STORAGE_KEY = "ukulele_chord_variants";
+
+function loadVariantPrefs(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(localStorage.getItem(VARIANT_STORAGE_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveVariantPref(chordName: string, idx: number) {
+  if (typeof window === "undefined") return;
+  try {
+    const prefs = loadVariantPrefs();
+    if (idx === 0) {
+      delete prefs[chordName];
+    } else {
+      prefs[chordName] = idx;
+    }
+    localStorage.setItem(VARIANT_STORAGE_KEY, JSON.stringify(prefs));
+  } catch {}
+}
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 const MARGIN_X = 14;
@@ -39,6 +63,17 @@ const SCALE: Record<string, number> = { sm: 0.8, md: 1, lg: 1.4 };
 export default function ChordDiagram({ chordName, size = "md" }: Props) {
   const variants = findChordVariants(chordName);
   const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const saved = loadVariantPrefs()[chordName] ?? 0;
+    setIdx(Math.min(saved, Math.max(0, variants.length - 1)));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chordName]);
+
+  function changeIdx(next: number) {
+    setIdx(next);
+    saveVariantPref(chordName, next);
+  }
 
   const scale = SCALE[size] ?? 1;
   const w = SVG_W * scale;
@@ -169,7 +204,7 @@ export default function ChordDiagram({ chordName, size = "md" }: Props) {
       {hasVariants && (
         <div className="flex items-center gap-1">
           <button
-            onClick={() => setIdx((prev) => (prev - 1 + variants.length) % variants.length)}
+            onClick={() => changeIdx((idx - 1 + variants.length) % variants.length)}
             className="text-gray-400 hover:text-white text-xs px-1 leading-none"
             aria-label="前の押さえ方"
           >
@@ -179,7 +214,7 @@ export default function ChordDiagram({ chordName, size = "md" }: Props) {
             {variants.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setIdx(i)}
+                onClick={() => changeIdx(i)}
                 className={`w-1.5 h-1.5 rounded-full transition-colors ${
                   i === idx ? "bg-blue-400" : "bg-gray-600 hover:bg-gray-400"
                 }`}
@@ -188,7 +223,7 @@ export default function ChordDiagram({ chordName, size = "md" }: Props) {
             ))}
           </div>
           <button
-            onClick={() => setIdx((prev) => (prev + 1) % variants.length)}
+            onClick={() => changeIdx((idx + 1) % variants.length)}
             className="text-gray-400 hover:text-white text-xs px-1 leading-none"
             aria-label="次の押さえ方"
           >
