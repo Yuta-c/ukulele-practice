@@ -209,6 +209,26 @@ const CHORD_ALTERNATIVES: Record<string, ChordShape[]> = {
   // G muted C(3)=Eb E(1)=F A(3)=C → F C Eb (index@E1, ring barre C&A@3)
   "Fm7": [{ name: "Fm7", frets: [-1, 3, 1, 3], fingers: [0, 2, 1, 2] }],
 
+  // Fsus4: standard [3,0,1,3] non-adjacent G&A at 3 → index barre E&A@1, ring@G3
+  // G(3)=Bb C open E(1)=F A(1)=Bb → F Bb C ✓ (2 finger positions)
+  "Fsus4": [{ name: "Fsus4", frets: [3, 0, 1, 1], fingers: [3, 0, 1, 1] }],
+
+  // Dm7: standard [2,2,1,3] → simplified to Dm shape (open A, drop 7th)
+  // G(2)=A C(2)=D E(1)=F A open → D F A = Dm ✓ (easier substitute)
+  "Dm7": [{ name: "Dm7", frets: [2, 2, 1, 0], fingers: [2, 3, 1, 0] }],
+
+  // Daug: standard [3,2,2,1] → mute G, compact frets 1-2
+  // G muted C(2)=D E(2)=F# A(1)=Bb → D F# Bb = Daug ✓
+  "Daug": [{ name: "Daug", frets: [-1, 2, 2, 1], fingers: [0, 2, 3, 1] }],
+
+  // Bdim: standard [4,2,1,2] stretch → mute G, compact frets 1-2
+  // G muted C(2)=D E(1)=F A(2)=B → B D F = Bdim ✓
+  "Bdim": [{ name: "Bdim", frets: [-1, 2, 1, 2], fingers: [0, 3, 1, 2] }],
+
+  // Asus2: standard [2,4,0,2] C(4) stretch → barre G&C@4, 2 open strings
+  // G(4)=B C(4)=E E open A open → A B E = Asus2 ✓ (index barre + 2 open)
+  "Asus2": [{ name: "Asus2", frets: [4, 4, 0, 0], fingers: [1, 1, 0, 0] }],
+
   // Bb: standard [3,2,1,1] → shell voicing muting G (index barre E&A@1, middle@C2)
   // G muted C(2)=D E(1)=F A(1)=Bb → Bb D F ✓ (2 finger positions)
   "Bb": [{ name: "Bb", frets: [-1, 2, 1, 1], fingers: [0, 2, 1, 1] }],
