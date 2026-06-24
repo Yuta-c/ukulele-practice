@@ -159,3 +159,49 @@ export const CHORD_NAMES = UKULELE_CHORDS.map((c) => c.name);
 export function findChord(name: string): ChordShape | undefined {
   return UKULELE_CHORDS.find((c) => c.name === name);
 }
+
+/**
+ * Alternative voicings per chord name.
+ * The primary voicing (in UKULELE_CHORDS) is always index 0.
+ * Each entry here becomes index 1, 2, … in findChordVariants().
+ *
+ * String note reference (GCEA):
+ *   G: G(0) Ab(1) A(2) Bb(3) B(4) C(5) Db(6) D(7)…
+ *   C: C(0) Db(1) D(2) Eb(3) E(4) F(5) Gb(6) G(7)…
+ *   E: E(0) F(1) F#(2) G(3) Ab(4) A(5) Bb(6) B(7)…
+ *   A: A(0) Bb(1) B(2) C(3) Db(4) D(5) Eb(6) E(7)…
+ */
+const CHORD_ALTERNATIVES: Record<string, ChordShape[]> = {
+  // Fmaj7: 4-finger stretch → 3-finger (A string open; C omitted)
+  // [2,4,1,3] primary → [2,4,1,0] easier
+  // G(2)=A C(4)=E E(1)=F A=open → F,A,E (partial)
+  "Fmaj7": [{ name: "Fmaj7", frets: [2, 4, 1, 0], fingers: [2, 3, 1, 0] }],
+
+  // C#m: first-position stretch [1,1,0,4] → barre at 4th fret
+  // G(6)=C# C(4)=E E(4)=G# A(4)=C# → C#,E,G# ✓
+  "C#m": [{ name: "C#m", frets: [6, 4, 4, 4], fingers: [3, 1, 1, 1], baseFret: 4 }],
+
+  // Ab: high barre (baseFret 3) → first-position [1,3,4,3]
+  // G(1)=Ab C(3)=Eb E(4)=Ab A(3)=C → Ab,C,Eb ✓
+  "Ab": [{ name: "Ab", frets: [1, 3, 4, 3], fingers: [1, 2, 4, 3] }],
+
+  // Db: barre at 4th fret → first-position stretch
+  // G(1)=Ab C(1)=Db E(1)=F A(4)=Db → Db,F,Ab ✓
+  "Db": [{ name: "Db", frets: [1, 1, 1, 4], fingers: [1, 1, 1, 4] }],
+
+  // Abm: first-position [1,3,4,2] → barre at 4th fret
+  // G(4)=B C(4)=E E(4)=Ab A(4)=Db? → nope, use same primary shape only
+  // (no clean alternative, skip)
+
+  // B: complex [4,3,2,2] → slightly different grip (same frets, different finger assignment hint)
+  // Many players find index-barre on fret 2 easier:
+  // G(4)=B C(2)=D E(2)=F# A(2)=B → B,D#? Wait: C(2)=D and A(2)=B; D is not D#.
+  // B major = B,D#,F#. No clean easy alternative. Omit.
+};
+
+export function findChordVariants(name: string): ChordShape[] {
+  const primary = findChord(name);
+  if (!primary) return [];
+  const alts = CHORD_ALTERNATIVES[name] ?? [];
+  return [primary, ...alts];
+}
