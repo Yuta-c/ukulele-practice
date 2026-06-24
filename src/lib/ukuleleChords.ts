@@ -197,14 +197,35 @@ const CHORD_ALTERNATIVES: Record<string, ChordShape[]> = {
   // G(2)=A C(4)=E E(1)=F A=open → F A E ✓ (partial)
   "Fmaj7": [{ name: "Fmaj7", frets: [2, 4, 1, 0], fingers: [2, 3, 1, 0] }],
 
-  // F#: standard [3,1,2,1] → full barre at 2nd fret (A-shape barre)
-  // G(4)=B C(2)=D E(2)=F# A(2)=B... wait that's not F#. Use different shape:
-  // Actually [3,1,2,1] is already clean. Add a higher-position barre:
-  // [4,1,2,4] baseFret=1? G(4)=B? Not F#. Skip barre alt for F#.
+  // Em: standard [0,4,3,2] requires 3 fingers in awkward positions
+  // G open C(4)=E E open A(2)=B → E G B ✓ (2 fingers only)
+  "Em": [{ name: "Em", frets: [0, 4, 0, 2], fingers: [0, 2, 0, 1] }],
+
+  // F7: standard [2,3,1,3] → open A string (drop 5th)
+  // G(2)=A C(3)=Eb E(1)=F A open → F A Eb ✓ (shell: root+3rd+7th)
+  "F7": [{ name: "F7", frets: [2, 3, 1, 0], fingers: [2, 3, 1, 0] }],
+
+  // Fm7: standard [1,3,1,3] hard split-barre → shell voicing (mute G)
+  // G muted C(3)=Eb E(1)=F A(3)=C → F C Eb (index@E1, ring barre C&A@3)
+  "Fm7": [{ name: "Fm7", frets: [-1, 3, 1, 3], fingers: [0, 2, 1, 2] }],
+
+  // Bb: standard [3,2,1,1] → shell voicing muting G (index barre E&A@1, middle@C2)
+  // G muted C(2)=D E(1)=F A(1)=Bb → Bb D F ✓ (2 finger positions)
+  "Bb": [{ name: "Bb", frets: [-1, 2, 1, 1], fingers: [0, 2, 1, 1] }],
+
+  // B: standard [4,3,2,2] 4 fingers → index barre E&A@2, ring@C3 (mute G)
+  // G muted C(3)=Eb=D# E(2)=F# A(2)=B → B D# F# ✓ (2 finger positions)
+  "B": [{ name: "B", frets: [-1, 3, 2, 2], fingers: [0, 3, 1, 1] }],
+
+  // Bm: standard [4,2,2,2] ring@G4 + barre@2 → just barre bottom 3 strings (mute G)
+  // G muted C(2)=D E(2)=F# A(2)=B → B D F# ✓ (1-finger barre)
+  "Bm": [{ name: "Bm", frets: [-1, 2, 2, 2], fingers: [0, 1, 1, 1] }],
 
   // C#m: open position stretch → barre at 4th fret (cleaner for some)
   // G(6)=C# C(4)=E E(4)=G# A(4)=C# → C# E G# ✓
   "C#m": [{ name: "C#m", frets: [6, 4, 4, 4], fingers: [3, 1, 1, 1], baseFret: 4 }],
+
+  // F#: standard [3,1,2,1] is already the simplest shape. No change.
 
   // Ab: high barre baseFret=3 → first position
   // G(1)=Ab C(3)=Eb E(4)=Ab A(3)=C → Ab C Eb ✓
@@ -214,21 +235,10 @@ const CHORD_ALTERNATIVES: Record<string, ChordShape[]> = {
   // G(1)=Ab C(1)=Db E(1)=F A(4)=Db → Db F Ab ✓
   "Db": [{ name: "Db", frets: [1, 1, 1, 4], fingers: [1, 1, 1, 4] }],
 
-  // G#m: same notes as Abm — barre at 4th fret alternative
-  // G(4)=B C(4)=E E(4)=G# A(4)=B? A(4)=Db, not B. Hmm.
-  // [4,3,4,2] baseFret=2: G(4-2+1=3) C(3-2+1=2) E(4-2+1=3) A(2-2+1=1)
-  // G(4)=B C(3)=Eb E(4)=Ab A(2)=B → Ab B Eb ✓  (=G#m)
+  // G#m / Abm: second position barre alternative
+  // G(4)=B C(3)=Eb E(4)=Ab A(2)=B → Ab B Eb ✓
   "G#m": [{ name: "G#m", frets: [4, 3, 4, 2], fingers: [3, 2, 4, 1], baseFret: 2 }],
-
-  // Abm: same note set as G#m — second position
   "Abm": [{ name: "Abm", frets: [4, 3, 4, 2], fingers: [3, 2, 4, 1], baseFret: 2 }],
-
-  // Bb: standard is already the simplest. Add a 5th-position barre for reference.
-  // [5,3,3,3] baseFret=3: G(5)=C? C not in Bb. No clean alternative.
-  // (no alternative added)
-
-  // Bbm: add 6th-position barre version (Em-shape transposed)
-  // [6,5,5,3] baseFret=3: G(6)=Db C(5)=F? Not Bbm. Skip.
 };
 
 export function findChordVariants(name: string): ChordShape[] {
