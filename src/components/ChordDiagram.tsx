@@ -38,6 +38,23 @@ const NUM_FRETS = 5;
 const DOT_RADIUS = 5;
 const NUT_HEIGHT = 4;
 
+// ── Finger colors ─────────────────────────────────────────────────────────────
+// 1=人差し指, 2=中指, 3=薬指, 4=小指。ミュートの赤(X)と被らない色を選択。
+const FINGER_COLORS: Record<number, string> = {
+  1: "#3b82f6", // 人差し指 - blue
+  2: "#22c55e", // 中指 - green
+  3: "#f59e0b", // 薬指 - amber
+  4: "#a855f7", // 小指 - purple
+};
+const DEFAULT_DOT_COLOR = "#3b82f6";
+
+const FINGER_LEGEND: { num: number; label: string }[] = [
+  { num: 1, label: "人差し指" },
+  { num: 2, label: "中指" },
+  { num: 3, label: "薬指" },
+  { num: 4, label: "小指" },
+];
+
 const GRID_W = STRING_SPACING * (NUM_STRINGS - 1);
 const GRID_H = FRET_SPACING * NUM_FRETS;
 const SVG_W = MARGIN_X * 2 + GRID_W;
@@ -56,11 +73,12 @@ function fy(fret: number) {
 interface Props {
   chordName: string;
   size?: "sm" | "md" | "lg";
+  showLegend?: boolean;
 }
 
 const SCALE: Record<string, number> = { sm: 0.8, md: 1, lg: 1.4 };
 
-export default function ChordDiagram({ chordName, size = "md" }: Props) {
+export default function ChordDiagram({ chordName, size = "md", showLegend = false }: Props) {
   const variants = findChordVariants(chordName);
   const [idx, setIdx] = useState(0);
 
@@ -180,9 +198,13 @@ export default function ChordDiagram({ chordName, size = "md" }: Props) {
           const cx = sx(i);
           const cy = fy(relativeFret);
           const fingerNumber = chord.fingers?.[i];
+          const dotColor =
+            fingerNumber != null && fingerNumber > 0
+              ? FINGER_COLORS[fingerNumber] ?? DEFAULT_DOT_COLOR
+              : DEFAULT_DOT_COLOR;
           return (
             <g key={`dot-${i}`}>
-              <circle cx={cx} cy={cy} r={DOT_RADIUS} fill="#3b82f6" />
+              <circle cx={cx} cy={cy} r={DOT_RADIUS} fill={dotColor} />
               {fingerNumber != null && fingerNumber > 0 && (
                 <text x={cx} y={cy + 3.5} fill="white" fontSize={7} fontWeight="bold" textAnchor="middle">
                   {fingerNumber}
@@ -199,6 +221,23 @@ export default function ChordDiagram({ chordName, size = "md" }: Props) {
           </text>
         ))}
       </svg>
+
+      {/* ── Finger legend ── */}
+      {showLegend && (
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 mt-1 text-[10px] text-gray-300">
+          {FINGER_LEGEND.map(({ num, label }) => (
+            <span key={num} className="inline-flex items-center gap-0.5">
+              <span
+                className="inline-flex items-center justify-center w-3 h-3 rounded-full text-white font-bold"
+                style={{ backgroundColor: FINGER_COLORS[num], fontSize: 7 }}
+              >
+                {num}
+              </span>
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* ── Variant switcher ── */}
       {hasVariants && (

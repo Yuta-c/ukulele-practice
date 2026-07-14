@@ -66,7 +66,7 @@ export default function PracticeView({ song, currentTime, onSeek }: Props) {
       {/* ── Chord diagram + next chord row ── */}
       <div className="flex items-center justify-center gap-6 w-full">
         {showDiagram && currentChord && (
-          <ChordDiagram chordName={currentChord.chord} size="lg" />
+          <ChordDiagram chordName={currentChord.chord} size="lg" showLegend />
         )}
 
         <div className="flex flex-col items-center">
