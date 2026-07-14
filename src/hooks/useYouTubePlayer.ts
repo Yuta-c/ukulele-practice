@@ -28,6 +28,7 @@ interface YTPlayerOptions {
   events?: {
     onReady?: (event: { target: YTPlayer }) => void;
     onStateChange?: (event: { data: number; target: YTPlayer }) => void;
+    onPlaybackRateChange?: (event: { data: number; target: YTPlayer }) => void;
     onError?: (event: { data: number }) => void;
   };
 }
@@ -172,8 +173,10 @@ export function useYouTubePlayer(
             const rates = event.target.getAvailablePlaybackRates();
             if (rates.length) setAvailableRates(rates);
             // YouTube resets the rate to 1.0 when playback resumes after a
-            // pause or a seek; restore the user's chosen speed.
-            if (event.target.getPlaybackRate() !== desiredRateRef.current) {
+            // pause or a seek. Re-apply unconditionally — getPlaybackRate()
+            // can report the stale requested value while playback has
+            // actually reverted to 1.0, so we must not guard on it.
+            if (desiredRateRef.current !== 1) {
               event.target.setPlaybackRate(desiredRateRef.current);
             }
           } else if (
@@ -182,6 +185,16 @@ export function useYouTubePlayer(
           ) {
             isPlayingRef.current = false;
             setIsPlaying(false);
+          }
+        },
+        onPlaybackRateChange: (event) => {
+          // Fired whenever YouTube changes the *effective* rate — including
+          // when it silently resets to 1.0 on pause/resume or a loop-wrap
+          // seek. If that isn't the rate the user chose, restore it. This is
+          // the authoritative signal; polling getPlaybackRate() is not,
+          // because it returns the last requested value, not the live one.
+          if (event.data !== desiredRateRef.current) {
+            event.target.setPlaybackRate(desiredRateRef.current);
           }
         },
       },
