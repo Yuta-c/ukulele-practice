@@ -120,6 +120,10 @@ export function useYouTubePlayer(
   const loopRef = useRef(loop);
   // Track whether we just seeked to loop start so we don't double-trigger
   const loopJustSeekedRef = useRef(false);
+  // The playback rate the user chose. YouTube resets the actual rate to 1.0
+  // on pause/resume, seeking (loop wrap) and re-cueing, so we keep the desired
+  // value here and re-apply it whenever the player drifts back to 1.0.
+  const desiredRateRef = useRef(1);
 
   const [isReady, setIsReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -167,6 +171,11 @@ export function useYouTubePlayer(
             setDuration(event.target.getDuration());
             const rates = event.target.getAvailablePlaybackRates();
             if (rates.length) setAvailableRates(rates);
+            // YouTube resets the rate to 1.0 when playback resumes after a
+            // pause or a seek; restore the user's chosen speed.
+            if (event.target.getPlaybackRate() !== desiredRateRef.current) {
+              event.target.setPlaybackRate(desiredRateRef.current);
+            }
           } else if (
             event.data === PAUSED_STATE ||
             event.data === ENDED_STATE
@@ -193,6 +202,15 @@ export function useYouTubePlayer(
         const t = playerRef.current.getCurrentTime();
         setCurrentTime(t);
 
+        // Re-apply the chosen playback rate if YouTube reset it (happens on
+        // pause/resume and on the seek that wraps the loop).
+        if (
+          isPlayingRef.current &&
+          playerRef.current.getPlaybackRate() !== desiredRateRef.current
+        ) {
+          playerRef.current.setPlaybackRate(desiredRateRef.current);
+        }
+
         const l = loopRef.current;
         if (l?.enabled && isPlayingRef.current) {
           // Seek LOOP_SEEK_MARGIN seconds before the nominal end so that by
@@ -200,6 +218,8 @@ export function useYouTubePlayer(
           if (t >= l.end - LOOP_SEEK_MARGIN && !loopJustSeekedRef.current) {
             loopJustSeekedRef.current = true;
             playerRef.current.seekTo(l.start, true);
+            // Restore the rate immediately after the wrap seek.
+            playerRef.current.setPlaybackRate(desiredRateRef.current);
           } else if (t < l.end - LOOP_SEEK_MARGIN * 2) {
             // Reset flag once we're safely before the end point
             loopJustSeekedRef.current = false;
@@ -235,6 +255,7 @@ export function useYouTubePlayer(
         setCurrentTime(next);
       },
       setPlaybackRate: (rate: number) => {
+        desiredRateRef.current = rate;
         playerRef.current?.setPlaybackRate(rate);
         setPlaybackRateState(rate);
       },
